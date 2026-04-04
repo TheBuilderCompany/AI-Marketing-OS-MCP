@@ -1,0 +1,33 @@
+# apps:
+#   - script: dist/index.js
+#     name: marketing-mcp
+#     instances: 1
+#     exec_mode: fork
+#     env_production:
+#       NODE_ENV: production
+#       PORT: 3000
+#     max_memory_restart: 500M
+#     error_file: /var/log/pm2/marketing-mcp-err.log
+#     out_file: /var/log/pm2/marketing-mcp-out.log
+#     merge_logs: true
+#     restart_delay: 5000
+#     max_restarts: 10
+#     watch: false
+#     autorestart: true
+
+apps:
+  - script: dist/index.js
+    name: marketing-mcp
+    instances: 1
+    exec_mode: fork
+    env_production:
+      NODE_ENV: production
+      PORT: 3000
+    max_memory_restart: 500M
+    error_file: /var/log/pm2/marketing-mcp-err.log
+    out_file: /var/log/pm2/marketing-mcp-out.log
+    merge_logs: true
+    restart_delay: 5000
+    max_restarts: 10
+    watch: false
+    autorestart: true
