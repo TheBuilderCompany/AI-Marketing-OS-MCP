@@ -1,9 +1,39 @@
 {
   "name": "marketing-mcp-server",
   "version": "1.0.0",
-  "description": "Content Automation Remote MCP Server for Claude.ai integration",
+  "description": "Remote MCP (Model Context Protocol) server for marketing content automation: RSS research, multi-platform drafts, X/LinkedIn/Beehiiv publishing hooks, analytics, and Notion reporting. HTTP + SSE for Claude and other MCP clients.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "marketing",
+    "content-automation",
+    "claude",
+    "remote-mcp",
+    "sse",
+    "express",
+    "notion",
+    "mongodb",
+    "rss",
+    "linkedin",
+    "twitter",
+    "beehiiv"
+  ],
+  "homepage": "https://github.com/YOUR_ORG/YOUR_REPO#readme",
+  "bugs": {
+    "url": "https://github.com/YOUR_ORG/YOUR_REPO/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_ORG/YOUR_REPO.git"
+  },
+  "license": "MIT",
   "main": "dist/index.js",
   "type": "module",
+  "files": [
+    "dist",
+    "README.md",
+    ".env.example"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
