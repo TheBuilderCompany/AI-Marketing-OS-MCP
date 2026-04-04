@@ -10,6 +10,16 @@
 | MCP server name | `marketing-content-automation` |
 | Node.js | 20+ |
 
+## Claude project (the other half)
+
+This repo is **Layer 3** — the MCP server that handles research storage, drafts, publishing, and Notion analytics over HTTP + SSE.
+
+The **Layer 1** setup lives in Claude: a Project with your brand context files, platform prompts, examples, and workflow. To build that side of **AI Marketing OS**, follow the full guide:
+
+**[AI Marketing OS — build your own automated content system](https://www.thebuilder.company/blogs/ai-marketing-os-build-your-own-automated-content-system)** (thebuilder.company)
+
+Configure the Claude project first, then connect this server as a remote MCP (see below).
+
 ## What it does
 
 The server exposes MCP **tools** that drive a workflow backed by **MongoDB**:
@@ -56,7 +66,7 @@ For production hosting (e.g. EC2, HTTPS, process manager), see **`DEPLOYMENT.md`
 
 ## Remote MCP (Claude)
 
-Use your deployed **HTTPS** base URL in the client. The app exposes OAuth metadata and a compatibility token flow for remote MCP. Set `MCP_AUTH_SECRET` in production so the MCP endpoints are not publicly open.
+After your [Claude Project files](https://www.thebuilder.company/blogs/ai-marketing-os-build-your-own-automated-content-system) are in place, add this server under **Settings → Integrations** using your deployed **HTTPS** base URL. The app exposes OAuth metadata and a compatibility token flow for remote MCP. Set `MCP_AUTH_SECRET` in production so the MCP endpoints are not publicly open.
 
 ## Project layout
 
