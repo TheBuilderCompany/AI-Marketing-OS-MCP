@@ -6,7 +6,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 /** Represents a single platform's content payload inside a Draft. */
 export interface IPlatformContent {
-  platform: "newsletter" | "linkedin" | "twitter" | "instagram";
+  platform: "newsletter" | "linkedin" | "twitter" | "instagram" | "whatsapp";
   /** The full text / body for this platform. */
   content: string;
   /** Optional: published URL returned from the platform API after publishing. */
@@ -27,7 +27,7 @@ const PlatformContentSchema = new Schema<IPlatformContent>(
   {
     platform: {
       type: String,
-      enum: ["newsletter", "linkedin", "twitter", "instagram"],
+      enum: ["newsletter", "linkedin", "twitter", "instagram", "whatsapp"],
       required: true,
     },
     content: { type: String, required: true },

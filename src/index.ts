@@ -19,6 +19,8 @@ const MCP_AUTH_SECRET = (process.env.MCP_AUTH_SECRET ?? "").trim();
 const LINKEDIN_ACCESS_TOKEN = (process.env.LINKEDIN_ACCESS_TOKEN ?? "").trim();
 const LINKEDIN_AUTHOR_URN = (process.env.LINKEDIN_AUTHOR_URN ?? "").trim();
 const LINKEDIN_ORGANIZATION_URN = (process.env.LINKEDIN_ORGANIZATION_URN ?? "").trim();
+const WHATSAPP_ACCESS_TOKEN = (process.env.WHATSAPP_ACCESS_TOKEN ?? "").trim();
+const WHATSAPP_PHONE_NUMBER_ID = (process.env.WHATSAPP_PHONE_NUMBER_ID ?? "").trim();
 
 // ─────────────────────────────────────────────────────────────────
 // CLIENTS
@@ -610,6 +612,148 @@ function createMcpServer() {
             ),
           },
         ],
+      };
+    }
+  );
+
+  // ─────────────────────────────────────────────────────────────────
+  // TOOL 5: send_whatsapp_message
+  // ─────────────────────────────────────────────────────────────────
+  const whatsappMsgSchema: Record<string, z.ZodTypeAny> = {
+    phone_number: z.string().describe("The recipient's phone number with country code (e.g., '15551234567')"),
+    message: z.string().describe("The free-form text message to send (must be within 24-hour reply window)"),
+  };
+
+  registerTool(
+    "send_whatsapp_message",
+    "Sends a direct, free-form text message to a client via WhatsApp Cloud API. " +
+    "Only use this if the client has messaged you within the last 24 hours.",
+    whatsappMsgSchema,
+    async (args) => {
+      const { phone_number, message } = args as { phone_number: string; message: string };
+      
+      if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+        return {
+          isError: true,
+          content: [{ type: "text", text: JSON.stringify({ success: false, error: "WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID not configured." }) }],
+        };
+      }
+
+      try {
+        const payload = {
+          messaging_product: "whatsapp",
+          recipient_type: "individual",
+          to: phone_number,
+          type: "text",
+          text: { preview_url: false, body: message }
+        };
+
+        const res = await axios.post(
+          `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+          payload,
+          {
+            headers: {
+              "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({ success: true, messageId: res.data.messages?.[0]?.id }, null, 2),
+            },
+          ],
+        };
+      } catch (err: unknown) {
+        let errorMsg = String(err);
+        if (axios.isAxiosError(err)) {
+          errorMsg = err.response?.data?.error?.message || err.message;
+        }
+        return {
+          isError: true,
+          content: [{ type: "text", text: JSON.stringify({ success: false, error: errorMsg }, null, 2) }],
+        };
+      }
+    }
+  );
+
+  // ─────────────────────────────────────────────────────────────────
+  // TOOL 6: send_whatsapp_mass_campaign
+  // ─────────────────────────────────────────────────────────────────
+  const whatsappCampaignSchema: Record<string, z.ZodTypeAny> = {
+    phone_numbers: z.array(z.string()).describe("Array of recipient phone numbers with country code"),
+    template_name: z.string().describe("The name of the pre-approved WhatsApp template to send"),
+  };
+
+  registerTool(
+    "send_whatsapp_mass_campaign",
+    "Sends a pre-approved message template to a list of phone numbers (Cold outreach). " +
+    "Does not require the 24-hour window.",
+    whatsappCampaignSchema,
+    async (args) => {
+      const { phone_numbers, template_name } = args as { phone_numbers: string[]; template_name: string };
+      
+      if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+        return {
+          isError: true,
+          content: [{ type: "text", text: JSON.stringify({ success: false, error: "WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID not configured." }) }],
+        };
+      }
+
+      const successResults: Array<{ phone: string; messageId: string }> = [];
+      const failedResults: Array<{ phone: string; error: string }> = [];
+
+      for (const phone of phone_numbers) {
+        try {
+          const payload = {
+            messaging_product: "whatsapp",
+            to: phone,
+            type: "template",
+            template: {
+              name: template_name,
+              language: { code: "en_US" }
+            }
+          };
+
+          const res = await axios.post(
+            `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+            payload,
+            {
+              headers: {
+                "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                "Content-Type": "application/json"
+              }
+            }
+          );
+          
+          successResults.push({ phone, messageId: res.data.messages?.[0]?.id });
+        } catch (err: unknown) {
+          let errorMsg = String(err);
+          if (axios.isAxiosError(err)) {
+            errorMsg = err.response?.data?.error?.message || err.message;
+          }
+          failedResults.push({ phone, error: errorMsg });
+        }
+      }
+
+      const hasErrors = failedResults.length > 0;
+
+      return {
+        ...(hasErrors && { isError: true }),
+        content: [
+          {
+             type: "text",
+             text: JSON.stringify({
+               success: !hasErrors || successResults.length > 0,
+               totalSent: successResults.length,
+               totalFailed: failedResults.length,
+               results: { success: successResults, failed: failedResults }
+             }, null, 2)
+          }
+        ]
       };
     }
   );
