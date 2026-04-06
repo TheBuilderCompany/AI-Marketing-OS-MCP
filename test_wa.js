@@ -17,10 +17,9 @@ async function test() {
       {
         messaging_product: 'whatsapp',
         to: RECIPIENT,
-        type: 'template',
-        template: {
-          name: 'hello_world',
-          language: { code: 'en_US' }
+        type: 'text',
+        text: {
+          body: 'Hello! This is a test message from your AI Marketing Assistant. Everything is working correctly! 🚀'
         }
       },
       {
